@@ -133,10 +133,20 @@ public class RNPrintModule extends ReactContextBaseJavaModule {
             }
         } else {
             try {
+                    OkHttpClient client = OkHttpClientProvider.createClient();
+                    ForwardingCookieHandler cookieHandler = new ForwardingCookieHandler(reactContext);
+                    cookieJarContainer = (CookieJarContainer) client.cookieJar();
+                    cookieJarContainer.setCookieJar(new JavaNetCookieJar(cookieHandler));
 
-                PrintManager printManager = (PrintManager) getCurrentActivity().getSystemService(Context.PRINT_SERVICE);
-                PrintDocumentAdapter pda = new PrintDocumentAdapter() {
-
+                    Request.Builder requestBuilder = new Request.Builder().url(filePath);
+                    Response res = client.newCall(requestBuilder.build()).execute();
+                    int responseCode=res.code();
+                    if (responseCode >= 400){
+                        promise.reject(getName(), "Something Went Wrong");
+                        return
+                    }
+                    PrintManager printManager = (PrintManager) getCurrentActivity().getSystemService(Context.PRINT_SERVICE);
+                    PrintDocumentAdapter pda = new PrintDocumentAdapter() {
                     @Override
                     public void onWrite(PageRange[] pages, final ParcelFileDescriptor destination, CancellationSignal cancellationSignal, final WriteResultCallback callback){
                         try {
@@ -148,13 +158,8 @@ public class RNPrintModule extends ReactContextBaseJavaModule {
                                         CookieJarContainer cookieJarContainer = null;
 
                                         try {
-                                            OkHttpClient client = OkHttpClientProvider.createClient();
-                                            ForwardingCookieHandler cookieHandler = new ForwardingCookieHandler(reactContext);
-                                            cookieJarContainer = (CookieJarContainer) client.cookieJar();
-                                            cookieJarContainer.setCookieJar(new JavaNetCookieJar(cookieHandler));
-
-                                            Request.Builder requestBuilder = new Request.Builder().url(filePath);
-                                            Response res = client.newCall(requestBuilder.build()).execute();
+                                           
+                                            
 
                                             loadAndClose(destination, callback, res.body().byteStream());
 
