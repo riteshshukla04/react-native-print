@@ -143,7 +143,7 @@ public class RNPrintModule extends ReactContextBaseJavaModule {
                     int responseCode=res.code();
                     if (responseCode >= 400){
                         promise.reject(getName(), "Something Went Wrong");
-                        return
+                        return;
                     }
                     PrintManager printManager = (PrintManager) getCurrentActivity().getSystemService(Context.PRINT_SERVICE);
                     PrintDocumentAdapter pda = new PrintDocumentAdapter() {
