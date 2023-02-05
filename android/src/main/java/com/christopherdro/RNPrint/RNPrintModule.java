@@ -133,14 +133,15 @@ public class RNPrintModule extends ReactContextBaseJavaModule {
             }
         } else {
             try {
-                    OkHttpClient client = OkHttpClientProvider.createClient();
-                    ForwardingCookieHandler cookieHandler = new ForwardingCookieHandler(reactContext);
-                    cookieJarContainer = (CookieJarContainer) client.cookieJar();
-                    cookieJarContainer.setCookieJar(new JavaNetCookieJar(cookieHandler));
+                    CookieJarContainer initialcookieJarContainer = null;
+                    OkHttpClient initalclient = OkHttpClientProvider.createClient();
+                    ForwardingCookieHandler initialcookieHandler = new ForwardingCookieHandler(reactContext);
+                    initialcookieJarContainer = (CookieJarContainer) initalclient.cookieJar();
+                    initialcookieJarContainer.setCookieJar(new JavaNetCookieJar(initialcookieHandler));
 
-                    Request.Builder requestBuilder = new Request.Builder().url(filePath);
-                    Response res = client.newCall(requestBuilder.build()).execute();
-                    int responseCode=res.code();
+                    Request.Builder initialrequestBuilder = new Request.Builder().url(filePath);
+                    Response initialres = initalclient.newCall(initialrequestBuilder.build()).execute();
+                    int responseCode=initialres.code();
                     if (responseCode >= 400){
                         promise.reject(getName(), "Something Went Wrong");
                         return;
@@ -154,13 +155,16 @@ public class RNPrintModule extends ReactContextBaseJavaModule {
 
                             if (isUrl) {
                                 new Thread(new Runnable() {
-                                    public void run() {
+                                    public void run() { 
                                         CookieJarContainer cookieJarContainer = null;
-
-                                        try {
-                                           
-                                            
-
+                                        try {   
+                                            OkHttpClient client = OkHttpClientProvider.createClient();
+                                            ForwardingCookieHandler cookieHandler = new ForwardingCookieHandler(reactContext);
+                                            cookieJarContainer = (CookieJarContainer) client.cookieJar();
+                                            cookieJarContainer.setCookieJar(new JavaNetCookieJar(cookieHandler));
+                        
+                                            Request.Builder requestBuilder = new Request.Builder().url(filePath);
+                                            Response res = client.newCall(requestBuilder.build()).execute();
                                             loadAndClose(destination, callback, res.body().byteStream());
 
                                             res.close();
